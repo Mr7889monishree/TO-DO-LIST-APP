@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" tasks="width=device-width initial-scale=1.0">
+        <meta name="Author" tasks="Monsihree">
+        <title>To-Do-List App</title>
+        <link rel="stylesheet" href="./style.css">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    </head>
+<body>
+    <div class="container w-100 h-100 text-center mt-4 mb-3">
+        <button class="btn btn-outline-warning " data-bs-toggle="modal" data-bs-target="#mymodal">
+            <i class="faa-solid fa-plus"></i>
+            <span class="p-2">Add Tasks</span>
+        </button>
+    </div>
+    
+
+
+   <div class="modal fade bg-dark text-light" id="mymodal" aria-labelledby="mymodal" aria-label="my-modal-section" >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="mymodal">Add the tasks</h4>
+                <button class="btn-close"  data-bs-dismis="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" name="tasks" id="add-modal-no" placeholder="Enter The Task Number" class="form-control">
+                </div>
+                <div class="input-group mb-3">
+                    <input type="text" name="enter" id="add-modal-tasks" placeholder="Enter The Task" class="form-control">
+
+                </div>
+            </div>
+            <div id="viewModalDateTime" class="card-footer text-muted">
+
+            </div>
+           
+            <div class="modal-footer">
+                <button class="btn btn-info"  id="add-modal-close" data-bs-dismiss="modal">Close</button>
+                <button class="btn btn-danger"  onclick="addTasks()">Save Changes</button>
+                
+            </div>
+        </div>
+    </div>
+   </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mx-5" id="notes"></div>
+   <div class="modal fade bg-dark text-light" id="editNoteModal" aria-labelledby="editNoteModal" aria-label="edit-note-section">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Add the Eited Section </div>
+
+            </div>
+            <div class="modal-body">
+                <div class="input-group mb-3">
+                    <input type="text" name="Edit" id="editNoteModalTitle" class="form-control" placeholder="enter the task-no">
+                    <input type="text" class="form-control" id="editNoteModalTask" placeholder="enter the task">
+
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close" id="editNoteModalClose" data-bs-dismiss="modal" ></button>
+                <button class="btn btn-info" id="editNoteModalSubmitbtn" type="button">Save Changes</button>
+            </div>
+           
+        </div>
+    </div>
+   </div>
+
+   <div class="modal fade " id="deleteNoteModal" aria-labelledby="deleteNoteModal" aria-label="delete-section">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="deleteNoteModallabel">Delete the Task
+                </div>
+                <button class=" btn-close" type="button" id="deleteNoteModalcross" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteNoteModalTitle"></p>
+
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn-close" id="deleteNoteModalClose" data-bs-dismiss="modal"></button>
+                <button class="btn btn-info" id="deleteNoteModalsubmit" type="button">Delete</button>
+            </div>
+        </div>
+    </div>
+   </div>
+
+
+
+
+
+
+   <script>
+    let addTasks=()=>{
+        let newnumber=document.getElementById("add-modal-no").value;
+        let NewTask=document.getElementById("add-modal-tasks").value;
+        let datetime=new Date();
+        let newTime=datetime.toLocaleString();
+
+        let idb = indexedDB.open("notes-editor", 1);
+
+        idb.onsuccess = () => {
+            let res = idb.result;
+            let tx= res.transaction("note", "readwrite");
+            let store = tx.objectStore("note");
+            store.put({
+                newNumber: newnumber,
+                NewTask: NewTask,
+                newTime: newTime,
+
+            });
+    
+        };
+    
+        document.getElementById("add-modal-tasks").value = null;
+        document.getElementById("add-modal-no").value=null;
+        document.getElementById("add-modal-close").click();
+        RefreshTasks();
+    };
+
+
+    let RefreshTasks = () => {
+        var TaskCard = '';
+    
+        let idb = indexedDB.open("notes-editor", 1);
+    
+        idb.onupgradeneeded = () => {
+            let receive = idb.result;
+            receive.createObjectStore("note", { autoIncrement: true })
+        }
+    
+        idb.onsuccess = () => {
+            let res = idb.result;
+            let transaction = res.transaction('note', 'readonly');
+            let store = transaction.objectStore('note');
+            let cursor = store.openCursor();
+            
+            cursor.onsuccess = () => {
+                let note= cursor.result;
+    
+                if (note) {
+                    TaskCard = TaskCard + `
+                    <div class="col">
+                            <div class="card text-center bg-dark text-light " data-bs-toggle="modal" data-bs-target="#mymodal">
+                                <div onclick="viewNote(${note.key})" id="view-note" class="card-body">
+                                    <h5 class="card-title">${note.value.newNumber}</h5>
+                                    <p class="card-text">${note.value.NewTask}</p>
+                                </div>
+                                <div class="card-footer text-muted container" id="card-footer">
+                                    <div class="row align-items-center">
+                                        <div class="col align-self-center py-2" style="padding-right:0px">
+                                            ${note.value.newTime}
+                                        </div>
+                                    </div>
+                                    <div class="row align-items-center">
+                                            <div class="col align-self-center" style="padding-right:0px">
+                                                <button type="button" class="btn btn-success container-fluid rounded-0" onclick="editModal(${note.key})" id="edit-note" data-bs-toggle="modal" data-bs-target="#editNoteModal">Edit</button>
+                                            </div>
+                                            <div class="col align-self-center" style="padding-left:0px">
+                                                <button type="button" class="btn btn-danger container-fluid rounded-0" onclick="deleteModal(${note.key})" id="delete-note" data-bs-toggle="modal" data-bs-target="#deleteNoteModal">Delete</button>
+                                            </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        `;
+    
+                    document.getElementById("notes").innerHTML = TaskCard;
+                    note.continue();
+                }
+            }
+        };
+    }
+    RefreshTasks();
+    let viewNote=(key)=>{
+        let idb=indexedDB.open("notes-editor",1)
+
+        idb.onsuccess=()=>{
+            let res=idb.result;
+            let tx=res.transaction("note","readonly")
+            let store=tx.objectStore("note")
+            let note=store.get(key);
+
+            note.onsuccess=()=>{
+                console.log(note.result)
+                document.getElementById("add-modal-no").value=note.result.newNumber;
+                document.getElementById("add-modal-tasks").value=note.result.NewTask;
+                document.getElementById("viewModalDateTime").innerText=note.result.newTime;
+            }
+        }
+      
+
+        
+        
+    };
+
+    let editModal=(key)=>{
+        let idb=indexedDB.open("notes-editor",1)
+
+        idb.onsuccess=()=>{
+            let res=idb.result;
+            let tx=res.transaction("note","readonly")
+            let store=tx.objectStore("note")
+            let note=store.get(key);
+
+            note.onsuccess=()=>{
+                console.log(note.result)
+                document.getElementById("editNoteModalTitle").value=note.result.newNumber;
+                document.getElementById("editNoteModalTask").value=note.result.NewTask;
+            
+        }
+        document.getElementById("editNoteModalSubmitbtn").onclick=()=>{
+                let newnumber=document.getElementById("editNoteModalTitle").value;
+                let NewTask=document.getElementById("editNoteModalTask").value;
+                let datetime=new Date();
+                let newTime=datetime.toLocaleString();
+
+                let idb = indexedDB.open("notes-editor", 1);
+
+                idb.onsuccess = () => {
+                    let res = idb.result;
+                    let tx= res.transaction("note", "readwrite");
+                    let store = tx.objectStore("note");
+                    store.put({
+                        newNumber: newnumber,
+                        NewTask: NewTask,
+
+                    },key);
+            
+                };
+            
+                document.getElementById("editNoteModalTitle").value = null;
+                document.getElementById("editNoteModalTask").value=null;
+                document.getElementById("editNoteModalClose").click();
+            }
+        }
+    }
+
+        let deleteModal=(key)=>{
+           let idb=indexedDB.open("notes-editor",1)
+
+           idb.onsuccess=()=>{
+            let res=idb.result
+            let tx=res.transaction("note","readonly")
+            let store=tx.objectStore("note")
+            let note=store.get(key);
+
+            note.onsuccess=()=>{
+                document.getElementById("deleteNoteModalTitle").innerHTML=`Are you sure you want to delete <b>${note.result.NewTask}</b>`;
+                
+            }
+
+            document.getElementById("deleteNoteModalsubmit").onclick=()=>{
+
+                let idb = indexedDB.open("notes-editor", 1);
+
+                idb.onsuccess = () => {
+                    let res = idb.result;
+                    let tx= res.transaction("note", "readwrite");
+                    let store = tx.objectStore("note");
+                    store.delete(key)
+            
+                };
+            
+               
+                document.getElementById("deleteNoteModalClose").click();
+            }
+        
+    }
+        }
+    
+
+
+   </script>
+
+    
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/eee25b111c.js" crossorigin="anonymous"></script>
+</body>
+</html>

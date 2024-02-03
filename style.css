@@ -1,0 +1,14 @@
+*{
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+.row-cols-1{
+    display: inline-block;
+}
+
+body{
+    background-image: url(./pexels-katrin-bolovtsova-6192131.jpg);
+    background-size: 100%;
+    background-repeat: no-repeat;
+}
